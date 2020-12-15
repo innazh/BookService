@@ -11,9 +11,9 @@ import (
 
 var DbConn *mongo.Client //*sql.DB //*mongo.Client
 
-func SetupDB() {
+func SetupDB(conn_str string) {
 	var err error
-	DbConn, err = mongo.NewClient(options.Client().ApplyURI(""))
+	DbConn, err = mongo.NewClient(options.Client().ApplyURI(conn_str))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -24,4 +24,8 @@ func SetupDB() {
 	}
 
 	//defer DbConn.Disconnect(ctx) //probably comment out and make a function for closing the connwection which we can call fom the main func
+}
+
+func CloseDbConn() {
+	DbConn.Disconnect(context.TODO())
 }

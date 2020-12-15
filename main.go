@@ -3,6 +3,7 @@ package main
 import (
 	"BooksWebservice/book"
 	"BooksWebservice/database"
+	"BooksWebservice/settings"
 	"log"
 	"net/http"
 )
@@ -10,12 +11,15 @@ import (
 const basePath = "/api"
 
 func main() {
-	database.SetupDB() //connects to the database
+	settings := settings.GetSettings()
+
+	database.SetupDB(settings.ConnectionString) //connects to the database
 	book.SetupRoutes(basePath)
 
-	err := http.ListenAndServe(":5000", nil)
+	err := http.ListenAndServe(settings.Port, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	defer database.CloseDbConn()
 }

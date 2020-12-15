@@ -3,10 +3,13 @@ package book
 import (
 	"BooksWebservice/database"
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const dbName = "Books"
@@ -23,14 +26,14 @@ func getBookList() ([]Book, error) {
 		log.Println(err.Error())
 		return nil, err
 	}
-	//NEEDS SOME SORT OF DECODING, LOOK INTO THAT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	defer cur.Close(context.Background())
+
 	err = cur.All(context.TODO(), &bookList)
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil, err
 	}
-	fmt.Println(bookList[0].Name)
+
 	return bookList, nil
 }
 
@@ -45,4 +48,25 @@ func getBooksByGenre() {
 //or maybe within a certain decade, would only accept numbers that are devisible by 10
 func getBooksByYear() {
 
+}
+
+//maybe redirect to the page with the inserted book
+func insertBook(b Book) (string, error) {
+	if &b == nil {
+		return "", errors.New("book is empty/invalid")
+	}
+	if b.Id != primitive.NilObjectID {
+		return "", errors.New("the ID needs to be empty")
+	}
+
+	var insertedId string
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := database.DbConn.Database(dbName).Collection(collectionName).InsertOne(ctx, b)
+	if err != nil {
+		return "", err
+	}
+	insertedId = result.InsertedID.(primitive.ObjectID).String()
+	return insertedId, err
 }
