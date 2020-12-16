@@ -22,8 +22,6 @@ func SetupDB(conn_str string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	//defer DbConn.Disconnect(ctx) //probably comment out and make a function for closing the connwection which we can call fom the main func
 }
 
 func CloseDbConn() {
