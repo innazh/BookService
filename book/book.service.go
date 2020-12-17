@@ -1,7 +1,18 @@
 package book
 
-/*
-TODO: make function check ERR, to make the code cleaner
+/*Some common response codes include:
+
+400 Bad Request — Client sent an invalid request — such as lacking required request body or parameter
+401 Unauthorized — Client failed to authenticate with the server
+403 Forbidden — Client authenticated but does not have permission to access the requested resource
+404 Not Found — The requested resource does not exist
+412 Precondition Failed — One or more conditions in the request header fields evaluated to false
+500 Internal Server Error — A generic error occurred on the server
+503 Service Unavailable — The requested service is not available*/
+
+/*Web API implements protocol specification and thus it incorporates concepts like caching, URIs, versioning, request/response headers, and various content formats in it.*/
+
+/*TODO: make function check ERR, to make the code cleaner
 maybe also functions that convert objectID to string and string to objectID
 in database.go, make function that returns a collection
 READ ABOUT CONTEXTS AND WHY WE NEED THEM, WHAT CAN THEY BE USED FOR*/
@@ -130,6 +141,13 @@ func bookHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		w.WriteHeader(http.StatusOK)
 		//maybe redirect to the updated product page.
+	case http.MethodDelete:
+		err = deleteBook(bookId)
+		if err != nil {
+			log.Println("operation deleteBook: " + err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		w.WriteHeader(http.StatusOK)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}

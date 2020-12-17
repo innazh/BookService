@@ -99,17 +99,36 @@ func updateBook(id string, b Book) error {
 		return err
 	}
 
-	//both work, read more about this
-	//filter := bson.M{"_id": objId}
-	filter := bson.M{"_id": bson.M{"$eq": objId}}
+	filter := bson.M{"_id": objId} //filter := bson.M{"_id": bson.M{"$eq": objId}}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	result, err := database.DbConn.Database(dbName).Collection(collectionName).UpdateOne(ctx, filter, bson.D{{"$set", b}}) //both & and normal val work, & seems to be faster (check)
+	result, err := database.DbConn.Database(dbName).Collection(collectionName).UpdateOne(ctx, filter, bson.D{{"$set", b}}) //because of omitempty, only the fields we filled in will be updated
 	if err != nil {
 		log.Println(err.Error())
 		return err
 	} else if result.ModifiedCount == 0 {
 		return errors.New("Failed to update the Book with id = " + id)
+	}
+	return nil
+}
+
+func deleteBook(id string) error {
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+
+	filter := bson.M{"_id": objId}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := database.DbConn.Database(dbName).Collection(collectionName).DeleteOne(ctx, filter)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	} else if result.DeletedCount == 0 {
+		return errors.New("Failed to delete the Book with id = " + id)
 	}
 	return nil
 }
