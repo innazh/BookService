@@ -17,20 +17,22 @@ maybe also functions that convert objectID to string and string to objectID
 in database.go, make function that returns a collection
 READ ABOUT CONTEXTS AND WHY WE NEED THEM, WHAT CAN THEY BE USED FOR*/
 import (
+	"BooksWebservice/cors"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const booksPath = "books"
 
 func SetupRoutes(apiBasePath string) {
-	booksHandlerO := http.HandlerFunc(booksHandler)
-	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, booksPath), booksHandlerO)                  //api/books
-	http.Handle(fmt.Sprintf("%s/%s/", apiBasePath, booksPath), http.HandlerFunc(bookHandler)) //api/books/
+	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, booksPath), cors.MiddlewareFunc(booksHandler)) //api/books
+	http.Handle(fmt.Sprintf("%s/%s/", apiBasePath, booksPath), cors.MiddlewareFunc(bookHandler)) //api/books/
 }
 
 /*A handler for api/books route.
@@ -40,10 +42,9 @@ case GET method: retrieves a slice of Books from the database, converts it to JS
 case POST method: retrieves the JSON object from the body of the response, decodes it, inserts it into the database, writes out the Id of the created object to the response*/
 func booksHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-
+	//get all books
 	case http.MethodGet:
 		bookList, err := getBookList()
-
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -51,42 +52,43 @@ func booksHandler(w http.ResponseWriter, r *http.Request) {
 
 		JSONbookList, err := json.Marshal(bookList)
 		if err != nil {
-			log.Println(err.Error())
+			log.Println("error encoding bookList into JSON: " + err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(JSONbookList)
-
+	//create book
 	case http.MethodPost:
 		var newb Book
 		bodyBytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			log.Println("operation ReadAll: " + err.Error())
+			log.Println("reading request body: " + err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		err = json.Unmarshal(bodyBytes, &newb)
-		if err != nil {
-			log.Println("operation Unmarshal: " + err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
+		if err != nil || newb.Id != primitive.NilObjectID {
+			log.Println("unmarshaling the body object, checking object's validity: " + err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Invalid object, please check your formatting -"))
 			return
 		}
 
 		var insertedId string
 		insertedId, err = insertBook(&newb)
 		if err != nil {
-			log.Println("operation insertBook: " + err.Error())
+			log.Println("failed to insert the book: " + err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
-		} else if insertedId == "" {
+		} else if insertedId == "" { //will probably never happen
 			log.Println("Something went wrong, the Id of the inserted object is missing.")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(insertedId))
+		w.Write([]byte("Inserted book's ID is " + insertedId))
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
@@ -100,54 +102,56 @@ func bookHandler(w http.ResponseWriter, r *http.Request) {
 	b, err = getBookById(bookId)
 
 	if err != nil {
-		log.Println("operation getBookById: " + err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	} else if b == nil {
-		log.Println("Couldn't locate the book with id =", bookId)
 		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Couldn't locate the book with id = " + bookId))
 		return
 	}
 
 	switch r.Method {
-	//send the book to the user
+	//send book to the user
 	case http.MethodGet:
 		var bookJSON []byte
-		bookJSON, err = json.Marshal(b)
-		if err != nil {
-			log.Println("operation Marshal: " + err.Error())
+		if bookJSON, err = json.Marshal(b); err != nil {
+			log.Println("converting book to json: " + err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(bookJSON)
+	//modify book
 	case http.MethodPut:
 		var updatedBook Book
 		var bodyBytes []byte
-		bodyBytes, err = ioutil.ReadAll(r.Body)
-
-		err = json.Unmarshal(bodyBytes, &updatedBook)
-		if err != nil {
-			log.Println("operation Unmarshal: " + err.Error())
+		if bodyBytes, err = ioutil.ReadAll(r.Body); err != nil {
+			log.Println("reading request body: " + err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		err = updateBook(bookId, updatedBook)
-		if err != nil {
-			log.Println("operation updateBook: " + err.Error())
+		if err = json.Unmarshal(bodyBytes, &updatedBook); err != nil {
+			log.Println("unmarshaling the body" + err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Invalid object, please check your formatting"))
+			return
+		}
+
+		if err = updateBook(bookId, updatedBook); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		//maybe redirect to the updated product page.
+
+	//delete book
 	case http.MethodDelete:
-		err = deleteBook(bookId)
-		if err != nil {
-			log.Println("operation deleteBook: " + err.Error())
+
+		if err = deleteBook(bookId); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 		w.WriteHeader(http.StatusOK)
+
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}

@@ -24,11 +24,9 @@ func SetupDB(conn_str string) {
 	}
 }
 
-//https://medium.com/better-programming/building-a-restful-api-with-go-and-mongodb-93e59cbbee88
-// func GetCollection(string collName){
-// 	return DbConn.Database("Books")
-// }
-//not bad error handling: https://medium.com/@faygun89/create-rest-api-with-golang-and-mongodb-d38d2e1d9714
+func GetMongoDbCollection(dbName, collName string) *mongo.Collection {
+	return DbConn.Database(dbName).Collection(collName)
+}
 
 func CloseDbConn() {
 	DbConn.Disconnect(context.TODO())
