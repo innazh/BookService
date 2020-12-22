@@ -18,12 +18,11 @@ func HashAndSalt(password []byte) (string, error) {
 }
 
 //function used to compare passwords upon sign in
-func ComparePasswords(registeredPass, signInPass []byte) (bool, error) {
-	err := bcrypt.CompareHashAndPassword(registeredPass, signInPass)
-	if err != nil {
-		log.Println(err.Error())
-		return false, err
+func ComparePasswords(registeredPass, signInPass []byte) bool {
+	result := bcrypt.CompareHashAndPassword(registeredPass, signInPass)
+	if result != nil {
+		return false
 	}
 
-	return true, nil
+	return true
 }

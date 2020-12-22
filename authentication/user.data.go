@@ -8,12 +8,11 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func PrepareUserInsert(user *User) error {
 	var err error
-	if user.password, err = services.HashAndSalt([]byte(user.password)); err != nil {
+	if user.Password, err = services.HashAndSalt([]byte(user.Password)); err != nil {
 		return err
 	}
 	return nil
@@ -43,9 +42,28 @@ func GetUserById(id string) (*User, error) {
 
 	dbColl := database.GetMongoDbCollection("Books", "users")
 	result := dbColl.FindOne(context.Background(), bson.M{"_id": objId})
+	if result == nil {
+		return nil, nil
+	}
 
-	println(mongo.ErrNoDocuments) // if no results were returned. THink about handling THAT xd
 	if err = result.Decode(&user); err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func GetUserByUsername(username string) (*User, error) {
+	var user User
+
+	dbColl := database.GetMongoDbCollection("Books", "users")
+	result := dbColl.FindOne(context.Background(), bson.M{"username": username})
+	if result == nil {
+		return nil, nil
+	}
+
+	if err := result.Decode(&user); err != nil {
 		log.Println(err.Error())
 		return nil, err
 	}

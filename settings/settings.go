@@ -10,6 +10,7 @@ import (
 type Settings struct {
 	Port             string
 	ConnectionString string
+	SigningKey       []byte
 }
 
 //Reads the configuration file containing port and connection string, returns both values in a struct
@@ -21,11 +22,13 @@ func GetSettings() Settings {
 	}
 	lines := strings.SplitAfter(string(data), "\n")
 	port := strings.Split(lines[0], " ")[1]
-	conn_str := strings.Split(lines[1], " ")[1]
+	connStr := strings.Split(lines[1], " ")[1]
+	signingKey := strings.Split(lines[2], " ")[1]
 
 	settings := Settings{
-		strings.TrimSpace(port),     //PORT
-		strings.TrimSpace(conn_str), //CONNECTION_STRING
+		strings.TrimSpace(port),               //PORT
+		strings.TrimSpace(connStr),            //CONNECTION_STRING
+		[]byte(strings.TrimSpace(signingKey)), //SIGNING_KEY
 	}
 
 	return settings

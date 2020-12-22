@@ -52,7 +52,12 @@ func getBookById(id string) (*Book, error) {
 	bookColl := database.GetMongoDbCollection(dbName, collectionName)
 	filter := bson.M{"_id": objId}
 
+	//check if the result isn't null (no matching documents were found)
 	result := bookColl.FindOne(context.Background(), filter)
+	if result == nil {
+		return nil, nil
+	}
+
 	err = result.Decode(&b)
 	if err != nil {
 		log.Println("error while decoding the db results: ", err.Error())
