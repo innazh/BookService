@@ -13,7 +13,6 @@ import (
 func SetupRoutes(apiBasePath string) {
 	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, "register"), http.HandlerFunc(RegistrationHandler))
 	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, "signin"), http.HandlerFunc(SignInHandler))
-	//http.Handle(fmt.Sprintf("%s/%s/", apiBasePath, "/refresh"), http.HandlerFunc())
 }
 
 func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +82,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 		//if the result successful - grant a JWT token to the user, if no - provide an 'unauthorarized access error'
 		if match {
 
-			jwtToken, expTime, err := services.CreateToken(settings.GetSettings().SigningKey, user.Username)
+			jwtToken, expTime, err := services.CreateToken(settings.GetKey(), user.Username)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
@@ -91,7 +90,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 
 			//w.WriteHeader(http.StatusOK)
 			//w.Write([]byte("User " + user.Username + " is successfully authenticated!"))
-			http.SetCookie(w, &http.Cookie{Name: "token", Value: jwtToken, Expires: expTime, HttpOnly: true})
+			http.SetCookie(w, &http.Cookie{Name: "token", Value: jwtToken, Expires: expTime, HttpOnly: true, SameSite: http.SameSiteStrictMode})
 
 			return
 		} else {

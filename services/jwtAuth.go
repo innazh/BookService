@@ -26,12 +26,13 @@ func CreateToken(appKey []byte, username string) (string, time.Time, error) {
 	return tokenStr, expirationTime, nil
 }
 
-func VerifyToken(tokenStr string) (*jwt.Token, error) {
+/*Uses app's signing key to parse the jwt string, returns the jwt token and nil as error if eveything is fine */
+func VerifyToken(signingKey []byte, jwtStr string) (*jwt.Token, error) {
 	claims := &Claims{}
 
-	tkn, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-		//return tokenStr, nil //i think it's the app key
+	token, err := jwt.ParseWithClaims(jwtStr, claims, func(token *jwt.Token) (interface{}, error) {
+		return signingKey, nil
 	})
 
-	return tkn, err
+	return token, err
 }

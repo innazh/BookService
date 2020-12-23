@@ -31,8 +31,8 @@ import (
 const booksPath = "books"
 
 func SetupRoutes(apiBasePath string) {
-	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, booksPath), cors.MiddlewareFunc(booksHandler)) //api/books
-	http.Handle(fmt.Sprintf("%s/%s/", apiBasePath, booksPath), cors.MiddlewareFunc(bookHandler)) //api/books/
+	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, booksPath), cors.ValidateMiddleware(booksHandler)) //api/books
+	http.Handle(fmt.Sprintf("%s/%s/", apiBasePath, booksPath), cors.ValidateMiddleware(bookHandler)) //api/books/
 }
 
 /*A handler for api/books route.

@@ -3,11 +3,15 @@ package cors
 //In Go, middleware is referred to as handlers
 import (
 	"BooksWebservice/services"
+	"BooksWebservice/settings"
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
+/*A regular middleware func that sets headers and fixes the amount of time it took for request to complete*/
 func MiddlewareFunc(handler http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//CORS headers:
@@ -23,75 +27,35 @@ func MiddlewareFunc(handler http.HandlerFunc) http.HandlerFunc {
 	})
 }
 
-func ValidateMiddleware(next http.HandlerFunc) http.HandlerFunc {
+/*Function checks for a jwt token in a Cookie of a request, varifies it and ServesHTTP
+If the token isn't valid, sends back StatusUnauthorized header*/
+func ValidateMiddleware(handler http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// We can obtain the session token from the requests cookies, which come with every request
-        c, err := r.Cookie("token")
-		
-		if err != nil {
-                if err == http.ErrNoCookie {
-                        // If the cookie is not set, return an unauthorized status
-                        w.WriteHeader(http.StatusUnauthorized)
-                        return
-                }
-                // For any other type of error, return a bad request status
-                w.WriteHeader(http.StatusBadRequest)
-                return
-        }
+		c, err := r.Cookie("token")
 
-        // Get the JWT string from the cookie
+		if err != nil {
+			if err == http.ErrNoCookie {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
 		jwtStr := c.Value
-		if err = services.VerifyToken(jwtStr); err!=nil {
+		token, err := services.VerifyToken(settings.GetKey(), jwtStr)
+		if err != nil {
 			if err == jwt.ErrSignatureInvalid {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 			w.WriteHeader(http.StatusBadRequest)
-			return	
+			return
 		}
-		if !jwtStr.Valid {
+		if !token.Valid {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-
-		
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		authorizationHeader := req.Header.Get("authorization")
-        if authorizationHeader != "" {
-            bearerToken := strings.Split(authorizationHeader, " ")
-            if len(bearerToken) == 2 {
-                token, error := jwt.Parse(bearerToken[1], func(token *jwt.Token) (interface{}, error) {
-                    if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-                        return nil, fmt.Errorf("There was an error")
-                    }
-                    return []byte("secret"), nil
-                })
-                if error != nil {
-                    json.NewEncoder(w).Encode(Exception{Message: error.Error()})
-                    return
-                }
-                if token.Valid {
-                    context.Set(req, "decoded", token.Claims)
-                    next(, wreq)
-                } else {
-                    json.NewEncoder(w).Encode(Exception{Message: "Invalid authorization token"})
-                }
-            }
-        } else {
-            json.NewEncoder(w).Encode(Exception{Message: "An authorization header is required"})
-        }
-    })
+		handler.ServeHTTP(w, r)
+	})
 }
