@@ -1,10 +1,10 @@
 package main
 
 import (
-	"BooksWebservice/authentication"
 	"BooksWebservice/book"
 	"BooksWebservice/database"
-	"BooksWebservice/settings"
+	"BooksWebservice/user"
+	"BooksWebservice/utils"
 	"log"
 	"net/http"
 )
@@ -12,13 +12,13 @@ import (
 const basePath = "/api"
 
 func main() {
-	settings := settings.GetSettings()
+	config := utils.GetConfiguration()
 
-	database.SetupDB(settings.ConnectionString) //connects to the database
+	database.SetupDB(config.ConnectionString) //connects to the database
 	book.SetupRoutes(basePath)
-	authentication.SetupRoutes(basePath)
+	user.SetupRoutes(basePath)
 
-	err := http.ListenAndServe(settings.Port, nil)
+	err := http.ListenAndServe(config.Port, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

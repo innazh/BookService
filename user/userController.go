@@ -1,8 +1,7 @@
-package authentication
+package user
 
 import (
-	"BooksWebservice/services"
-	"BooksWebservice/settings"
+	"BooksWebservice/utils"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -30,12 +29,12 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
 		var userInsertId string
 		//if the sent object is valid - send it off into the database to encode and store
 		if user.Id == primitive.NilObjectID && user.Username != "" && user.Password != "" {
-			//TODO: hash user's password
+			// hash user's password
 			if err = PrepareUserInsert(&user); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			//TODO: add the user into the database
+			// add the user into the database
 			if userInsertId, err = InserNewUser(user); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
@@ -43,7 +42,6 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusCreated)
 			w.Write([]byte(userInsertId))
 			return
-			//think about the fields you might wanna have here.........
 		}
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -65,7 +63,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		//TODO: get user from the database by username
+		///get user from the database by username
 		dbUser, err := GetUserByUsername(user.Username)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -76,13 +74,11 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		//TODO: get the retrieved user's hashed password and convert it into a []byte
-		//TODO: call comparePasswords() from passwordManager and deal with the result:
-		match := services.ComparePasswords([]byte(dbUser.Password), []byte(user.Password))
+		match := utils.ComparePasswords([]byte(dbUser.Password), []byte(user.Password))
 		//if the result successful - grant a JWT token to the user, if no - provide an 'unauthorarized access error'
 		if match {
 
-			jwtToken, expTime, err := services.CreateToken(settings.GetKey(), user.Username)
+			jwtToken, expTime, err := utils.CreateToken(utils.GetKey(), user.Username)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return

@@ -14,7 +14,6 @@ import (
 const dbName = "Books"
 const collectionName = "books"
 
-//all gets
 func getBookList() ([]Book, error) {
 	var bookList []Book
 	bookColl := database.GetMongoDbCollection(dbName, collectionName)

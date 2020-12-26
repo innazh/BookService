@@ -1,9 +1,8 @@
-package cors
+package handler
 
 //In Go, middleware is referred to as handlers
 import (
-	"BooksWebservice/services"
-	"BooksWebservice/settings"
+	"BooksWebservice/utils"
 	"fmt"
 	"net/http"
 	"time"
@@ -43,7 +42,7 @@ func ValidateMiddleware(handler http.HandlerFunc) http.HandlerFunc {
 		}
 
 		jwtStr := c.Value
-		token, err := services.VerifyToken(settings.GetKey(), jwtStr)
+		token, err := utils.VerifyToken(utils.GetKey(), jwtStr)
 		if err != nil {
 			if err == jwt.ErrSignatureInvalid {
 				w.WriteHeader(http.StatusUnauthorized)

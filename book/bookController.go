@@ -15,9 +15,9 @@ package book
 /*TODO: make function check ERR, to make the code cleaner
 maybe also functions that convert objectID to string and string to objectID
 in database.go, make function that returns a collection
-READ ABOUT CONTEXTS AND WHY WE NEED THEM, WHAT CAN THEY BE USED FOR*/
+READ ABOUT CONTEXTS AND WHY WE NEED THEM, WHAT CAN THEY BE USED FOR, headers (which ones to set in your middleware, why)*/
 import (
-	"BooksWebservice/cors"
+	"BooksWebservice/handler"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -31,8 +31,8 @@ import (
 const booksPath = "books"
 
 func SetupRoutes(apiBasePath string) {
-	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, booksPath), cors.ValidateMiddleware(booksHandler)) //api/books
-	http.Handle(fmt.Sprintf("%s/%s/", apiBasePath, booksPath), cors.ValidateMiddleware(bookHandler)) //api/books/
+	http.Handle(fmt.Sprintf("%s/%s", apiBasePath, booksPath), handler.ValidateMiddleware(booksHandler)) //api/books
+	http.Handle(fmt.Sprintf("%s/%s/", apiBasePath, booksPath), handler.ValidateMiddleware(bookHandler)) //api/books/
 }
 
 /*A handler for api/books route.

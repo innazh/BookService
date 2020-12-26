@@ -1,10 +1,16 @@
-package services
+package utils
 
 import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
+
+//struct endcoded to jwt:
+type Claims struct {
+	username           string
+	jwt.StandardClaims //for fiels like 'expiry time'
+}
 
 /*Creates a token with claims, it expires in 5 minutes*/
 func CreateToken(appKey []byte, username string) (string, time.Time, error) {

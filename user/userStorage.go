@@ -1,8 +1,8 @@
-package authentication
+package user
 
 import (
 	"BooksWebservice/database"
-	"BooksWebservice/services"
+	"BooksWebservice/utils"
 	"context"
 	"log"
 
@@ -12,7 +12,7 @@ import (
 
 func PrepareUserInsert(user *User) error {
 	var err error
-	if user.Password, err = services.HashAndSalt([]byte(user.Password)); err != nil {
+	if user.Password, err = utils.HashAndSalt([]byte(user.Password)); err != nil {
 		return err
 	}
 	return nil
@@ -70,6 +70,3 @@ func GetUserByUsername(username string) (*User, error) {
 
 	return &user, nil
 }
-
-//maybe create a function here to prepare User object to be written into the db
-//it'd hash the password and replace the password in the object with hashed password
