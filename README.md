@@ -22,7 +22,7 @@ Upon successful authentication, you'll receive a JWT token with a set expiration
 
 ### Books
 In order to have the access to the core routes of the API, user must be authenticated and hold a valid JWT token in a Cookie.
-####Book model
+#### Book model
 ```JSON
 {
     "id": "id",
