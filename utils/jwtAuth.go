@@ -9,7 +9,7 @@ import (
 //struct endcoded to jwt:
 type Claims struct {
 	username           string
-	jwt.StandardClaims //for fiels like 'expiry time'
+	jwt.StandardClaims //for fields like 'expiry time'
 }
 
 /*Creates a token with claims, it expires in 5 minutes*/

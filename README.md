@@ -25,7 +25,7 @@ In order to have the access to the core routes of the API, user must be authenti
 #### Book model
 ```JSON
 {
-    "id": "id",
+    "id": "_id",
     "title": "title",
     "author": "author",
     "year": 1990,

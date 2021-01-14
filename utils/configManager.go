@@ -10,6 +10,7 @@ import (
 type Configuration struct {
 	Port             string
 	ConnectionString string
+	DbName           string
 }
 
 //Reads the configuration file containing port and connection string, returns both values in a struct
@@ -22,10 +23,12 @@ func GetConfiguration() Configuration {
 	lines := strings.SplitAfter(string(data), "\n")
 	port := strings.Split(lines[0], " ")[1]
 	connStr := strings.Split(lines[1], " ")[1]
+	dbName := strings.Split(lines[2], " ")[1]
 
 	config := Configuration{
 		strings.TrimSpace(port),    //PORT
 		strings.TrimSpace(connStr), //CONNECTION_STRING
+		strings.TrimSpace(dbName),  //DATABASE_NAME
 	}
 
 	return config

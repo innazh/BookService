@@ -17,7 +17,7 @@ func HashAndSalt(password []byte) (string, error) {
 	return string(hash), nil
 }
 
-//function used to compare passwords upon sign in
+//function used to compare passwords upon the sign in
 func ComparePasswords(registeredPass, signInPass []byte) bool {
 	result := bcrypt.CompareHashAndPassword(registeredPass, signInPass)
 	if result != nil {
