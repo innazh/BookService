@@ -26,6 +26,6 @@ func (e *Env) AddBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Inserted book's ID is " + insertedId))
+	w.Write([]byte(insertedId))
 	return
 }

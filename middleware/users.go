@@ -21,14 +21,18 @@ func ValidateNewUser(next http.HandlerFunc) http.HandlerFunc {
 		if err != nil {
 			http.Error(w, "Invalid user information.", http.StatusBadRequest)
 			return
-		} else if user.Id == primitive.NilObjectID {
+		} else if user.Id != primitive.NilObjectID {
 			http.Error(w, "User ids cannot be assigned", http.StatusBadRequest)
+			return
 		} else if user.Username == "" {
-			http.Error(w, "Username is missing", http.StatusBadRequest)
+			http.Error(w, "Username is empty", http.StatusBadRequest)
+			return
 		} else if user.Password == "" {
-			http.Error(w, "Password is missing", http.StatusBadRequest)
+			http.Error(w, "Password is empty", http.StatusBadRequest)
+			return
 		} else if len(user.Password) < 6 {
-			http.Error(w, "Password must contain 6+ characters", http.StatusBadRequest)
+			http.Error(w, "Password must contain at least 6 characters", http.StatusBadRequest)
+			return
 		}
 
 		//pass user with context of the request
@@ -52,6 +56,7 @@ func ValidateUser(next http.HandlerFunc) http.HandlerFunc {
 			return
 		} else if user == (data.User{}) {
 			http.Error(w, "Please provide username and password", http.StatusBadRequest)
+			return
 		}
 
 		//pass user with context of the request

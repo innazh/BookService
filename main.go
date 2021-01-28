@@ -1,5 +1,7 @@
 package main
 
+//curl --local-port 8080 POST -H "Origin: http://localhost:8080" -H "Content-Type: application/json" --verbose -d '{"username": "admin", "password": "admin"}' http://localhost:5000/signin
+
 import (
 	"BooksWebservice/data"
 	"BooksWebservice/handlers"
@@ -17,6 +19,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+/*Something else to add on: maybe make books exportable as a file on /books/download path?*/
 func main() {
 	config := utils.GetConfiguration()
 
@@ -26,6 +29,7 @@ func main() {
 
 	//Create router and setup routes
 	sm := mux.NewRouter().StrictSlash(true)
+
 	//GET
 	setupGETRoutes(sm, env)
 	//POST
@@ -36,17 +40,18 @@ func main() {
 	setupDELETERoutes(sm, env)
 
 	//CORS - allow all origins
-	cors := gohandlers.CORS(gohandlers.AllowedOrigins([]string{"*"}))
+	ch := gohandlers.CORS(gohandlers.AllowCredentials(), gohandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Accept", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"}), gohandlers.AllowedOrigins([]string{"http://127.0.0.1:3000"}), gohandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"}))
 
 	//create a custom server to change the timeouts, port & assign the configured router sm to it
 	s := &http.Server{
 		Addr:         config.Port,
-		Handler:      cors(sm),
+		Handler:      ch(sm),
+		ErrorLog:     l,
 		IdleTimeout:  120 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
-
+	println("Server is running on localhost" + config.Port)
 	go func() {
 		err := s.ListenAndServe()
 		if err != nil {
@@ -64,6 +69,7 @@ func setupGETRoutes(sm *mux.Router, env *handlers.Env) {
 	getRouter.Handle("/", http.RedirectHandler("/books", 301))
 	getRouter.Handle("/books", http.HandlerFunc(env.GetBooks))
 	getRouter.Handle("/books/{id}", http.HandlerFunc(env.GetBook))
+	getRouter.Handle("/checksignin", http.HandlerFunc(env.CheckSignIn))
 }
 
 //Sets up all POST route handlers and middleware
@@ -89,7 +95,6 @@ func setupDELETERoutes(sm *mux.Router, env *handlers.Env) {
 }
 
 //close everything donw upon receiving a shut down command
-//TODO: attach to env somehow to access that logger. or just pass env in
 func serverShutdown(l *log.Logger, s *http.Server, db *mongo.Client, dbName string) {
 	sigChannel := make(chan os.Signal)
 	signal.Notify(sigChannel, os.Interrupt)
@@ -100,5 +105,5 @@ func serverShutdown(l *log.Logger, s *http.Server, db *mongo.Client, dbName stri
 	l.Println("Shutting the server down->", sig)
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*30)
 	s.Shutdown(ctx)
-	db.Database(dbName)
+	db.Database(dbName) //what? TODO!
 }

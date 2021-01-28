@@ -28,7 +28,6 @@ func CreateToken(appKey []byte, username string) (string, time.Time, error) {
 	if err != nil {
 		return "", expirationTime, err
 	}
-
 	return tokenStr, expirationTime, nil
 }
 

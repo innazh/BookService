@@ -19,11 +19,13 @@ func (e *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 		e.l.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if dbUser == nil && err == nil { //user with such ID doesn't exist!
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("User with such username doesn't exist!"))
-		return
 	}
+	//  else if dbUser == nil && err == nil { //user with such ID doesn't exist!
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	w.Write([]byte("User with such username doesn't exist!"))
+	// 	println("does thi ever happen i think not")
+	// 	return
+	// }
 
 	match := utils.ComparePasswords([]byte(dbUser.Password), []byte(user.Password))
 	//if the result successful - grant a JWT token to the user, if no - provide an 'unauthorarized access error'
@@ -37,7 +39,7 @@ func (e *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 
 		//w.WriteHeader(http.StatusOK)
 		//w.Write([]byte("User " + user.Username + " is successfully authenticated!"))
-		http.SetCookie(w, &http.Cookie{Name: "token", Value: jwtToken, Expires: expTime, HttpOnly: true, SameSite: http.SameSiteStrictMode})
+		http.SetCookie(w, &http.Cookie{Name: "token", Value: jwtToken, Expires: expTime, HttpOnly: true})
 
 		return
 	} else {
@@ -45,4 +47,10 @@ func (e *Env) SignIn(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Wrong password"))
 		return
 	}
+}
+
+func (e *Env) CheckSignIn(w http.ResponseWriter, r *http.Request) {
+	e.l.Println("Handle GET checksignin")
+	w.WriteHeader(http.StatusAccepted) //202
+	return
 }

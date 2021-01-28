@@ -43,7 +43,7 @@ func ValidateJWTToken(handler http.Handler) http.Handler {
 }
 
 /*A regular middleware func that sets headers and fixes the amount of time it took for request to complete*/
-func MiddlewareFunc(handler http.HandlerFunc) http.HandlerFunc {
+func MiddlewareFunc(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//CORS headers:
 		w.Header().Add("Access-Control-Allow-Origin", "*")

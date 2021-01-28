@@ -42,6 +42,7 @@ func UpdateBookValidation(next http.Handler) http.Handler {
 
 		err := book.FromJSON(r.Body)
 		if err != nil {
+			println(err.Error())
 			http.Error(w, "Book is invalid.", http.StatusBadRequest)
 			return
 		} else if book.Id != primitive.NilObjectID {
