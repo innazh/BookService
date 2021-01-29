@@ -15,7 +15,7 @@ import (
 //TODO use ToJSON function to convert books to JSON
 func (e *Env) GetBooks(w http.ResponseWriter, r *http.Request) {
 	e.l.Println("Handle GET Books")
-	w.Header().Set("Access-Control-Allow-Credentials", "true") //this fixed the credentials problem. Allows to accept requests with cookies(credentials)
+	// w.Header().Set("Access-Control-Allow-Credentials", "true")
 	bookList, err := data.GetBooks(e.bookCollection)
 	if err != nil {
 		e.l.Println(err.Error())

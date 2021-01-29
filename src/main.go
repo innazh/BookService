@@ -1,7 +1,5 @@
 package main
 
-//curl --local-port 8080 POST -H "Origin: http://localhost:8080" -H "Content-Type: application/json" --verbose -d '{"username": "admin", "password": "admin"}' http://localhost:5000/signin
-
 import (
 	"BooksWebservice/data"
 	"BooksWebservice/handlers"
@@ -21,11 +19,11 @@ import (
 
 /*Something else to add on: maybe make books exportable as a file on /books/download path?*/
 func main() {
-	config := utils.GetConfiguration()
+	config := utils.ParseConfigFile()
 
 	l := log.New(os.Stdout, "book-api: ", log.LstdFlags|log.Lshortfile)
-	db := data.GetNewClient(config.ConnectionString)
-	env := handlers.NewEnv(l, db, config.DbName)
+	db := data.GetNewClient(config.Database.ConnStr)
+	env := handlers.NewEnv(l, db, config.Database.DbName)
 
 	//Create router and setup routes
 	sm := mux.NewRouter().StrictSlash(true)
@@ -40,18 +38,18 @@ func main() {
 	setupDELETERoutes(sm, env)
 
 	//CORS - allow all origins
-	ch := gohandlers.CORS(gohandlers.AllowCredentials(), gohandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Accept", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"}), gohandlers.AllowedOrigins([]string{"http://127.0.0.1:3000"}), gohandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"}))
+	ch := gohandlers.CORS(gohandlers.AllowCredentials(), gohandlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Accept", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"}), gohandlers.AllowedOrigins([]string{config.Server.AllowedOrigin}), gohandlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"}))
 
 	//create a custom server to change the timeouts, port & assign the configured router sm to it
 	s := &http.Server{
-		Addr:         config.Port,
+		Addr:         config.Server.Port,
 		Handler:      ch(sm),
 		ErrorLog:     l,
 		IdleTimeout:  120 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
-	println("Server is running on localhost" + config.Port)
+	println("Server is running on localhost" + config.Server.Port)
 	go func() {
 		err := s.ListenAndServe()
 		if err != nil {
@@ -59,7 +57,7 @@ func main() {
 		}
 	}()
 
-	serverShutdown(l, s, db, config.DbName)
+	serverShutdown(l, s, db, config.Database.DbName)
 }
 
 //Sets up all GET route handlers and middleware

@@ -19,7 +19,7 @@ type Book struct {
 	Title     string             `json:"title,omitempty" bson:"title,omitempty"`
 	Author    string             `json:"author,omitempty" bson:"author,omitempty"`
 	Year      int                `json:"year,omitempty" bson:"year,omitempty"`
-	ShortDesc string             `json:"shortDesc,omitempty" bson:"shortDesc,omitempty"` //~50symbols
+	ShortDesc string             `json:"shortDesc,omitempty" bson:"shortDesc,omitempty"`
 	Genre     string             `json:"genre,omitempty" bson:"genre,omitempty"`
 }
 
@@ -119,7 +119,6 @@ func UpdateBook(b Book, bc *mongo.Collection) error {
 }
 
 /*Takes in objectId Id and database collection. Deletes the books with this id from the database, returns error.*/
-//TODO: if the book with this id doesn't exist, send back a meaningful message aka The resource does not exist.
 func DeleteBook(id primitive.ObjectID, bc *mongo.Collection) error {
 	filter := bson.M{"_id": id}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
